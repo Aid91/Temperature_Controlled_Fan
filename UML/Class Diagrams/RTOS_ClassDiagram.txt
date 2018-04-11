@@ -1,0 +1,71 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class InterruptBasedCommunication {
++init() : void 
++checkIfStartIsReceived() : boolean 
++checkIfStopIsReceived() : boolean 
++putstring(StringPtr : char*) : void 
++send(data : unsigned char) : void 
++parseInt(buff : char*, lenght : uint8_t) : int16_t 
++isRunning() : bool 
++handleInterrupt() : void
++isAutomatic() : bool 
++getLowTemperature() : int8_t  
++getHighTemperature() : int8_t 
++getPwmRate() : uint8_t 
++SendTemperatureAndPwmValue(temperature : float, pwmValue : uint8_t) : void 
++{static} instance() : InterruptBasedCommunication& 
+
+-InterruptBasedCommunication();
+-_running : volatile boolean
+-_buffer[20] : volatile int8_t 
+-_temp_buffer[20] : char 
+-_strRxFlag : volatile uint8_t 
+-_i : volatile uint8_t 
+-_count : volatile uint8_t 
+-_old_i : volatile uint8_t 
+-_lowTemperature : int8_t 
+-_highTemperature : int8_t 
+-_pwmRate : uint8_t 
+}
+
+class Helpers {
++ {static} ConvertFloatToCharArray(value : float) : char*
++ {static} ConvertIntToCharArray(value : int) : char*
+}
+
+class BaseConstants {
++{static} STX : char*
++{static} ETX : char*
++{static} RS : char*
+}
+
+class TemperatureControlledFan {
+-_temperaturePin : uint8_t 
+-_fanPin : uint8_t 
+
++TemperatureControlledFan()
++TemperatureControlledFan(communication : Communication, fanPin : uint8_t , temperaturePin : uint8_t )
++ReadTemperature() : float
++CalculatePwmAndControlFan(pwmPercentageRate : uint8_t , fanPin : uint8_t )
++HandleStates() : void 
++CalculateCurrentFanSpeedBasedOnTemperature(tempeature : float) : float
++WriteToLED() : void
+}
+
+class RTOS {
++setup():void
++loop():void
++TaskLedIndication(pvParameters: void*) : void
++TaskAnalogReadAndControl(pvParameters: void*) : void
+}
+
+TemperatureControlledFan ..> InterruptBasedCommunication
+InterruptBasedCommunication ..> BaseConstants
+InterruptBasedCommunication ..> Helpers
+RTOS ..> TemperatureControlledFan
+RTOS ..> Adafruit_7segment
+RTOS ..> InterruptBasedCommunication
+
+@enduml

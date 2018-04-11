@@ -1,0 +1,178 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface IReciever {
++ Receive(point1 : float , point2 : float , time : string ) : void
+}
+abstract AbstractSender {
+- _serialPort : SerialPort
++ SerialPort : SerialPort
+
+{abstract} Start(startTemperature : float, endTemperature : float, pwmRation : int, auto=false : bool) : void
+{abstract} Stop() : void
+}
+
+class Receiver {
+- _communicationFromEmbedded : IReciever
+- _serialPort : SerialPort
++ Receiver(embedded: IReciever, serialPort: SerialPort)
++ SerialPort_DataReceived(sender: object, e : SerialDataReceivedEventArgs) : void
+}
+
+IReciever <--o Receiver
+
+class Sender {
++Start(startTemperature : float, endTemperature : float, pwmRation : int, auto=false : bool) : void
++Stop() : void
+}
+
+class RTOSSender {
++Start(startTemperature : float, endTemperature : float, pwmRation : int, auto=false : bool) : void
++Stop() : void
+}
+
+AbstractSender <|-- Sender
+AbstractSender <|-- RTOSSender
+
+interface ITemperatureView {
++ SetTemperature() : void
+}
+
+class ChartView {
+- _chart : LineGraph
++ ChartView()
++ ChartView(min: float, max: float, yInterval: int)
+- Initialize(min: float, max: float, yInterval: int) : void
++ DrawPoint(point1: float, point2: float, time: string) : void
++ SetTemperatureRangeLenght(difference: float) : void
+}
+
+Panel <|-- ChartView
+ChartView ..> LineGraph
+
+class ValidationView {
+- _timer : Timer
+- _label : Label
+- _counter : int
+
++ ValidationView()
++ Activate() : void
+- Timer_Tick(sender: object, e: EventArgs) : void
+}
+
+Panel <|-- ValidationView
+
+class TemperatureView {
+- _plusButton : Button
+- _minusButton : Button
+- _temperatureLabel: Label
+- _initialTemperature: int
+- _temperatureController : TemperatureController
+
++ InitialTemperature : int
++  TemperatureView(initialTemperature:int)
++ SetController(temperatureController : TemperatureController) : void
+- Initialize(initialTemperature:int) : void
+- MinusButton_Click(sender : object, e : EventArgs ) : void
+- PlusButton_Click(sender : object, e : EventArgs ) : void
++ SetTemperature() : void
+}
+
+TemperatureView --|> Panel
+TemperatureView ..|> ITemperatureView
+
+class MainView {
+-_lowTemperatureView : TemperatureView
+-_highTemperatureView : TemperatureView
+-_lowTemperatureController : TemperatureController
+-_highTemperatureController : TemperatureController
+-_startButton : Button
+-_stopButton :  Button 
+-_motorSpeedTrackBar : TrackBar 
+-_chartView :  ChartView 
+-_sender :  AbstractSender 
+-_mainController : MainController 
+-_motorSpeedLabel :  Label 
+-_automaticMotorSpeedCheckBox :  CheckBox 
+-_referenceTemperaturesLabel : Label 
+-_automaticFanSpeedRegulationLabel : Label
+-_fanSpeedLabel : Label
+-_validationView :  ValidationView 
+-_connectionStatusTimer : Timer 
+-_connectionStatusPanel : Panel
+-_connectionStatus : ConnectionStatus
+
++MotorSpeedTrackBar : TrackBar 
++InitialTemperatureLow : int
++InitialTemperatureHigh : int
++MotorSpeedLabel : Label 
++Sender : AbstractSender
++StartButton : Button
++StopButton : Button
++ChartView : ChartView
++ConnectionStatus : ConnectionStatus 
++MainView(sender : AbstractSender)
+-ConnectionStatusTimer_Tick(sender : object , e : EventArgs ) : void
+-AutomaticMotorSpeedCheckBox_CheckedChanged(sender : object , e : EventArgs ) : void
+-MotorSpeedTrackBar_MouseUp(sender : object , e : MouseEventArgs ) : void
+-MotorSpeedTrackBar_MouseWheel(sender : object , e : MouseEventArgs ) : void
+-MotorSpeedTrackBar_ValueChanged(sender : object , e : EventArgs ) : void
++SetController(mainController : MainController) : void
++StopButton_Click(sender : object , e : EventArgs) : void
++StartButton_Click(sender : object , e : EventArgs) : void
++Receive(point1 : float , point2 : float , time : string) : void
+}
+
+MainView --|> Panel
+MainView ..|> IReciever
+MainView o--> TemperatureView
+MainView o--> TemperatureController
+MainView o--> ChartView
+MainView o--> AbstractSender
+MainView o--> MainController
+MainView o--> ValidationView
+MainView o--> ConnectionStatus
+MainView o--> Helpers
+
+
+class MainController {
+-_mainView : MainView
++MainController(mainView : MainView)
+~DoMotorSpeedTrackBarMouseUp() : void 
+~DoMotorSpeedTrackBarMouseWheel() : void
+~DoMotorSpeedTrackbarValueChanged() : void
+~DoStopButtonClick() : void
+~DoStartButtonClick() : void
+~DoSpeedCheckBoxCheckedChanged(enabled : bool) : void
+~DoMotorSpeedTrackBarMouseWheel(e : MouseEventArgs) : void
+~DoStartButtonClick(lowTemperature : int, highTemperature : int, fanSpeed : int, @checked : bool) : void
+}
+
+MainController *--> MainView
+
+class TemperatureController {
+-_temperatureView : TemperatureView
++TemperatureController(temperatureView : TemperatureView)
+~DoMinusButtonClick() : void 
+~DoPlusButtonClick() : void
+}
+
+TemperatureController --* TemperatureView
+TemperatureController --> Constants
+
+enum ConnectionStatus {
+	Connected
+	Disconnected
+}
+
+class Constants {
++{static} int MINIMAL_TEMPERATURE = -40
++{static} int MAXIMAL_TEMPERATURE = -40
+}
+
+class Helpers {
++{static} ReadControlValue(varControl : TrackBar) : int
++{static} AutodetectArduinoPort() : string
+}
+
+@enduml

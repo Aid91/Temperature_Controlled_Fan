@@ -1,0 +1,65 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Communication {
++ReadCommand(command: String*) : unit8_t
++SendTemperatureAndPwmValue(temperature : float, pwmValue : uint8_t) : void	
+}
+
+class BaseConstants {
++{static} STX : char*
++{static} ETX : char*
++{static} RS : char*
+}
+
+class Constants {
++{static} MSG_SUCCESS : int
++{static} NO_SERIAL_DATA_AVAIALABLE : int
++{static} SERIAL_IN_COMMAND_NOT_TERMINATED : int
+}
+
+Constants --> BaseConstants
+
+class TemperatureControlledFan {
+-_isStarted : bool
+-_lowTemperature : int8_t 
+-_highTemperature : int8_t 
+-_pwmPercantageRate : uint8_t 
+-_automatic : bool 
+-_temperaturePin : uint8_t 
+-_fanPin : uint8_t 
+-_communication : Communication 
+
++TemperatureControlledFan()
++TemperatureControlledFan(communication : Communication, fanPin : uint8_t , temperaturePin : uint8_t )
++ReadTemperature() : float
++CalculatePwmAndControlFan(pwmPercentageRate : uint8_t , fanPin : uint8_t )
++ReadAndSetData() : void
++HandleStates() : void 
++WriteToLED() : void
++CalculateCurrentFanSpeedBasedOnTemperature(tempeature : float) : float
++GetIsStarted() : bool
++SetIsStarted(isStarted : bool) : void
++GetLowTemperature() : int8_t 
++SetLowTemperature(lowTemperature : int8_t) : void
++GetHighTemperature() : int8_t
++SetHighTemperature(highTemperature : int8_t) : void 
++GetPwmPercantageRate() : uint8_t 
++SetPwmPercantageRate(pwmPercantageRate : uint8_t) : void  
++GetAutomatic() : bool 
++SetAutomatic(automatic : bool) : void  
+}
+
+class main {
++setup():void
++loop():void
+}
+
+TemperatureControlledFan o--> Communication
+TemperatureControlledFan ..> Constants
+Communication ..> Constants
+main ..> TemperatureControlledFan
+main ..> Communication
+main ..> Adafruit_7segment
+
+@enduml
